@@ -93,7 +93,7 @@ def registerpage(request):
         form=UserCreationForm(request.POST)
 
         if form.is_valid():
-
+            print("form is valid")
             user=form.save(commit=False)
 
             user.username=user.username.lower()
@@ -104,7 +104,7 @@ def registerpage(request):
             return redirect('home')
 
         else:
-
+            
             messages.error(request,"An Error occured during registration")
             
     
@@ -127,7 +127,7 @@ def home(request):
 
     room_count=rooms.count() 
 
-    topics=Topic.objects.all()
+    topics=Topic.objects.all()[0:5]
     
 
     room_messages=Message.objects.filter(Q(room__name__icontains=q))
@@ -296,6 +296,22 @@ def jls_extract_def():
 def updateuser(request):
     user=request.user
     form=UserForm(instance=user)
-
+    
+    if request.method=='POST':
+        form=UserForm(request.POST,instance=user)
+        if form.is_valid():
+            form.save()
+            redirect('user-profile',pk=user.id)
     return render(request,'update-user.html',{'form':form})
     
+    
+def topicsPage(request):
+    
+    q = request.GET.get('q') if request.GET.get('q')!=None else ""
+    topics=Topic.objects.filter(name__icontains = q)
+    return render(request,'topics.html',{'topics':topics})
+
+
+def activityPage(request):
+    room_messages=Message.objects.all()
+    return render(request,'activity.html',{'room_messages':room_messages})
